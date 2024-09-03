@@ -29,6 +29,19 @@ void enqueue(node** head, int pid, int at, int bt) {
     start->next = temp;
 }
 
+void enqueueProcess(node** head, node *process) {
+    process->next = NULL;
+    if (*head == NULL) {
+        *head = process;
+        return;
+    }
+    node* start = *head;
+    while (start->next) {
+        start = start->next;
+    }
+    start->next = process;
+}
+
 node* dequeue(node** head) {
     if (*head == NULL) return NULL;
     node* temp = *head;
@@ -36,46 +49,17 @@ node* dequeue(node** head) {
     return temp;
 }
 
-void enqueueBuffer(node** head, int pid, int at, int rem_bt) {
-    node* newNode = (node*)malloc(sizeof(node));
-    newNode->pid = pid;
-    newNode->at = at;
-    newNode->rem_bt = rem_bt;
-    newNode->bt = 0; // Not used in buffer
-    newNode->ct = 0;
-    newNode->tat = 0;
-    newNode->wt = 0;
-    newNode->rt = 0;
-    newNode->next = NULL;
-
-    if (*head == NULL) {
-        *head = newNode;
-    } else {
-        node* temp = *head;
-        while (temp->next) {
-            temp = temp->next;
-        }
-        temp->next = newNode;
-    }
-}
-
-node* dequeueBuffer(node** head) {
-    if (*head == NULL) return NULL;
-    node* temp = *head;
-    *head = (*head)->next;
-    temp->next = NULL;
-    return temp;
-}
-
 int system_time = 0;
 int context_switches = 0;
+node* global_sch_tail = NULL;
 node* scheduler(int quantum) {
     node* queueHead = NULL;
     node* bufferHead = NULL;
     node* scheduleHead = NULL;
     node* scheduleTail = NULL;
 
-    while (1) {
+    while (1) 
+    {
         // Add new processes based on system time
         char c = 't';
         while (c != 'n') {
@@ -104,45 +88,49 @@ node* scheduler(int quantum) {
         }
 
         // Move processes from buffer to queue
-        while (bufferHead) {
-            node* process = dequeueBuffer(&bufferHead);
-            enqueue(&queueHead, process->pid, process->at, process->rem_bt);
+        if (bufferHead) {
+            enqueueProcess(&queueHead, bufferHead);
+            bufferHead = NULL;
         }
 
         if (queueHead == NULL) {
             if (c == 's') break; // Exit simulation if 's' was entered
             system_time++;
-            continue;
+            // continue;
         }
 
-        node* process = dequeue(&queueHead);
-        context_switches++;
+        if (queueHead)
+        {
+            node* process = dequeue(&queueHead);
+            context_switches++;
 
-        if (process->rem_bt > quantum) {
-            system_time += quantum;
-            process->rem_bt -= quantum;
-            enqueueBuffer(&bufferHead, process->pid, process->at, process->rem_bt);
-        } else {
-            system_time += process->rem_bt;
-            process->rem_bt = 0;
-        }
-
-        if (scheduleHead == NULL) {
-            if (process->rem_bt == 0) {
-                scheduleHead = process;
-                scheduleTail = process;
+            if (process->rem_bt > quantum) {
+                system_time += quantum + 1;
+                process->rem_bt -= quantum;
+                bufferHead = process;
+                // enqueueBuffer(&bufferHead,process);
+            } else {
+                system_time += process->rem_bt + 1;
+                process->rem_bt = 0;
             }
-        } else {
-            if (process->rem_bt == 0) {
-                scheduleTail->next = process;
-                scheduleTail = scheduleTail->next;
-            }
-        }
 
-        process->ct = system_time;
-        process->tat = process->ct - process->at;
-        process->wt = process->tat - process->bt;
-        process->rt = process->wt;
+            if (scheduleHead == NULL) {
+                if (process->rem_bt == 0) {
+                    scheduleHead = process;
+                    scheduleTail = process;
+                }
+            } else {
+                if (process->rem_bt == 0) {
+                    scheduleTail->next = process;
+                    scheduleTail = scheduleTail->next;
+                }
+            }
+
+            process->ct = system_time;
+            process->tat = process->ct - process->at;
+            process->wt = process->tat - process->bt;
+            process->rt = process->wt;
+        }
     }
 
     context_switches++;

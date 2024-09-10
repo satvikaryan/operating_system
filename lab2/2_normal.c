@@ -144,11 +144,6 @@ node* scheduler(int n, int* pids, int* ats, int* bts, int quantum) {
         process->rt = process->wt;
         
         process->next = NULL;
-        printf("do you want to enter a new process\n");
-        scanf("%d ",&choice);
-        if(choice == ){
-            scanf("%d",pids);
-        }
     }
 
     context_switches++;

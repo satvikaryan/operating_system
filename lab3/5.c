@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-int main() 
+int main()
 {
     pid_t C1, C2, C3, C4, C5;
 

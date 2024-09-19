@@ -18,7 +18,7 @@ void parentProcess(){
 
     int min = INT_MAX;
     for (int i = 0; i < SIZE; i++){
-        printf("Element: %d, Address: %p\n", arr[i], (void*)&arr[i]);
+        printf(" parent Element: %d, Address: %p\n", arr[i], (void*)&arr[i]);
         if (arr[i] < min) {
             min = arr[i];
         }
@@ -38,7 +38,7 @@ void childProcess() {
 
     int max = INT_MIN;
     for (int i = 0; i < SIZE; i++) {
-        printf("Element: %d, Address: %p\n", arr[i], (void*)&arr[i]);
+        printf(" child Element: %d, Address: %p\n", arr[i], (void*)&arr[i]);
         if (arr[i] > max) {
             max = arr[i];
         }
